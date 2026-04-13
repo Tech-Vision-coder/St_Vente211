@@ -247,7 +247,7 @@ footer { background:#1a1a1a; color:#fff; padding:40px 10%; display:flex; align-i
     <div>
       <div class="contact-item">
         <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-        <div><div class="contact-label">Adresse</div><div class="contact-value editable" id="info-adresse" onclick="editInfo('adresse')">Votre adresse, Castres</div></div>
+        <div><div class="contact-label">Adresse</div><div class="contact-value editable" id="info-adresse" onclick="editInfo('adresse')">Castres, Tarn (81)</div></div>
       </div>
       <div class="contact-item">
         <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
@@ -338,7 +338,9 @@ footer { background:#1a1a1a; color:#fff; padding:40px 10%; display:flex; align-i
 const ADMIN_PW = 'ServiceAntiFraude';
 let isAdmin = false;
 let currentTab = 'catalogue';
-const products = { catalogue:[], nouveautes:[], exclusivites:[], promotions:[] };
+const saved = localStorage.getItem('stvente_products');
+const products = saved ? JSON.parse(saved) : { catalogue:[], nouveautes:[], exclusivites:[], promotions:[] };
+function saveProducts() { localStorage.setItem('stvente_products', JSON.stringify(products)); }
 const emptyIcons = { catalogue:'🛍️', nouveautes:'✨', exclusivites:'💎', promotions:'🔖' };
 const emptyLabels = { catalogue:'Aucun produit pour l\'instant', nouveautes:'Aucune nouveauté pour l\'instant', exclusivites:'Aucune exclusivité pour l\'instant', promotions:'Aucune promotion pour l\'instant' };
 
@@ -433,6 +435,7 @@ function addProduct() {
   const imgSrc = (preview && preview.style.display !== 'none') ? preview.src : '';
   const prod = { name, desc, price, imgSrc, id: Date.now() };
   products[currentTab].push(prod);
+  saveProducts();
   renderGrid(currentTab);
   document.getElementById('product-modal').classList.remove('open');
   toast('Produit ajouté avec succès !');
@@ -441,6 +444,7 @@ function addProduct() {
 function deleteProduct(tab, id) {
   if (!isAdmin) return;
   products[tab] = products[tab].filter(p => p.id !== id);
+  saveProducts();
   renderGrid(tab);
   toast('Produit supprimé.');
 }
@@ -504,6 +508,7 @@ async function sendMail() {
 function goSection(sel) { document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }); }
 function goContact() { goSection('#contact'); }
 
+Object.keys(products).forEach(tab => renderGrid(tab));
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => { e.preventDefault(); goSection(a.getAttribute('href')); });
 });
