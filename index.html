@@ -130,6 +130,9 @@ footer { background:#1a1a1a; color:#fff; padding:40px 10%; display:flex; align-i
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
 .admin-badge { display:inline-flex; align-items:center; gap:6px; background:#fde8de; color:#B85C38; font-size:12px; font-weight:500; padding:4px 12px; border-radius:20px; cursor:pointer; border:none; }
+.editable { cursor:default; }
+.editable.admin-active { cursor:pointer; border-bottom:1px dashed #B85C38; }
+.editable.admin-active:hover::after { content:' ✏️'; font-size:11px; }
 </style>
 </head>
 <body>
@@ -244,11 +247,11 @@ footer { background:#1a1a1a; color:#fff; padding:40px 10%; display:flex; align-i
     <div>
       <div class="contact-item">
         <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-        <div><div class="contact-label">Adresse</div><div class="contact-value">Votre adresse, Castres</div></div>
+        <div><div class="contact-label">Adresse</div><div class="contact-value editable" id="info-adresse" onclick="editInfo('adresse')">Votre adresse, Castres</div></div>
       </div>
       <div class="contact-item">
         <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
-        <div><div class="contact-label">Téléphone</div><div class="contact-value">Votre numéro</div></div>
+        <div><div class="contact-label">Téléphone</div><div class="contact-value editable" id="info-telephone" onclick="editInfo('telephone')">Votre numéro</div></div>
       </div>
       <div class="contact-item">
         <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
@@ -256,7 +259,7 @@ footer { background:#1a1a1a; color:#fff; padding:40px 10%; display:flex; align-i
       </div>
       <div class="contact-item">
         <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
-        <div><div class="contact-label">Horaires</div><div class="contact-value">À renseigner</div></div>
+        <div><div class="contact-label">Horaires</div><div class="contact-value editable" id="info-horaires" onclick="editInfo('horaires')">À renseigner</div></div>
       </div>
     </div>
     <div class="contact-form">
@@ -372,7 +375,15 @@ function logoutAdmin() {
   document.getElementById('admin-toggle').style.color = '#B85C38';
   document.getElementById('admin-toggle').querySelector('svg').setAttribute('fill','#B85C38');
   document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none');
+  document.querySelectorAll('.editable').forEach(el => el.classList.remove('admin-active'));
   toast('Déconnecté');
+}
+
+function editInfo(field) {
+  if (!isAdmin) return;
+  const el = document.getElementById('info-'+field);
+  const val = prompt('Modifier ' + field + ' :', el.textContent);
+  if (val !== null && val.trim() !== '') { el.textContent = val.trim(); toast('Mis à jour !'); }
 }
 
 function switchTab(tab, btn) {
@@ -418,11 +429,12 @@ function addProduct() {
   if (!name) { toast('Veuillez saisir un nom de produit.'); return; }
   const desc = document.getElementById('p-desc').value.trim();
   const price = document.getElementById('p-price').value.trim();
-  const imgSrc = document.getElementById('p-preview').src || '';
+  const preview = document.getElementById('p-preview');
+  const imgSrc = (preview && preview.style.display !== 'none') ? preview.src : '';
   const prod = { name, desc, price, imgSrc, id: Date.now() };
   products[currentTab].push(prod);
   renderGrid(currentTab);
-  closeModal();
+  document.getElementById('product-modal').classList.remove('open');
   toast('Produit ajouté avec succès !');
 }
 
@@ -456,20 +468,37 @@ function renderGrid(tab) {
   `).join('');
 }
 
-function sendMail() {
+async function sendMail() {
   const prenom = document.getElementById('c-prenom').value.trim();
   const nom = document.getElementById('c-nom').value.trim();
   const email = document.getElementById('c-email').value.trim();
   const sujet = document.getElementById('c-sujet').value;
   const message = document.getElementById('c-message').value.trim();
   if (!message) { toast('Veuillez écrire un message.'); return; }
-  const subject = encodeURIComponent('[ST_Vente] ' + sujet + (prenom ? ' — ' + prenom + ' ' + nom : ''));
-  const body = encodeURIComponent(
-    'Prénom : ' + prenom + '\nNom : ' + nom + '\nEmail : ' + email +
-    '\nSujet : ' + sujet + '\n\nMessage :\n' + message
-  );
-  window.location.href = 'mailto:yoanssss425@gmail.com?subject=' + subject + '&body=' + body;
-  toast('Ouverture de votre messagerie...');
+  if (!email) { toast('Veuillez saisir votre email.'); return; }
+  const btn = document.querySelector('.form-submit');
+  btn.textContent = 'Envoi en cours...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://formspree.io/f/xeevqjgn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ prenom, nom, email, sujet, message })
+    });
+    if (res.ok) {
+      toast('Message envoyé ! Nous vous répondrons rapidement.');
+      document.getElementById('c-prenom').value = '';
+      document.getElementById('c-nom').value = '';
+      document.getElementById('c-email').value = '';
+      document.getElementById('c-message').value = '';
+    } else {
+      toast('Erreur lors de l\'envoi, réessayez.');
+    }
+  } catch(e) {
+    toast('Erreur réseau, réessayez.');
+  }
+  btn.textContent = 'Envoyer le message';
+  btn.disabled = false;
 }
 
 function goSection(sel) { document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }); }
