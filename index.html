@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ST_Vente</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font-sans,'Segoe UI',sans-serif); color:#1a1a1a; background:#fff; }
+a { text-decoration:none; color:inherit; }
+
+nav { position:sticky; top:0; z-index:100; background:rgba(255,255,255,0.96); backdrop-filter:blur(8px); border-bottom:0.5px solid #e5e5e5; padding:0 5%; display:flex; align-items:center; justify-content:space-between; height:60px; }
+.logo { font-size:20px; font-weight:500; letter-spacing:-0.5px; }
+.logo span { color:#B85C38; }
+.nav-links { display:flex; gap:32px; font-size:14px; color:#555; }
+.nav-links a:hover { color:#B85C38; }
+.nav-cta { background:#1a1a1a; color:#fff; padding:8px 20px; border-radius:6px; font-size:14px; font-weight:500; cursor:pointer; border:none; transition:background 0.2s; }
+.nav-cta:hover { background:#B85C38; }
+
+.hero { min-height:88vh; display:flex; align-items:center; padding:0 10%; background:#faf9f7; position:relative; overflow:hidden; }
+.hero-bg { position:absolute; right:-60px; top:50%; transform:translateY(-50%); width:520px; height:520px; border-radius:50%; background:#f0ebe3; opacity:0.7; }
+.hero-content { position:relative; z-index:1; max-width:580px; }
+.hero-tag { display:inline-block; background:#fde8de; color:#B85C38; font-size:12px; font-weight:500; padding:5px 14px; border-radius:20px; margin-bottom:24px; letter-spacing:0.5px; text-transform:uppercase; }
+.hero h1 { font-size:52px; font-weight:500; line-height:1.1; letter-spacing:-1px; margin-bottom:20px; }
+.hero h1 em { font-style:normal; color:#B85C38; }
+.hero p { font-size:17px; color:#666; line-height:1.7; margin-bottom:36px; max-width:440px; }
+.hero-btns { display:flex; gap:14px; flex-wrap:wrap; }
+.btn-primary { background:#1a1a1a; color:#fff; padding:14px 28px; border-radius:8px; font-size:15px; font-weight:500; transition:background 0.2s; cursor:pointer; border:none; }
+.btn-primary:hover { background:#B85C38; }
+.btn-outline { border:1px solid #ccc; color:#333; padding:14px 28px; border-radius:8px; font-size:15px; transition:all 0.2s; cursor:pointer; background:none; }
+.btn-outline:hover { border-color:#B85C38; color:#B85C38; }
+
+section { padding:96px 10%; }
+.section-tag { font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:1px; color:#B85C38; margin-bottom:12px; }
+.section-title { font-size:36px; font-weight:500; letter-spacing:-0.5px; margin-bottom:16px; }
+.section-sub { font-size:16px; color:#666; max-width:480px; line-height:1.7; margin-bottom:48px; }
+
+.about-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
+.about-visual { background:#f5f0eb; border-radius:16px; height:380px; display:flex; align-items:center; justify-content:center; }
+.about-icon { width:72px; height:72px; background:#B85C38; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+.about-icon svg { fill:#fff; }
+.values { display:flex; flex-direction:column; gap:18px; margin-top:36px; }
+.value-item { display:flex; gap:14px; align-items:flex-start; }
+.value-dot { width:8px; height:8px; background:#B85C38; border-radius:50%; margin-top:8px; flex-shrink:0; }
+.value-item p { font-size:15px; color:#555; line-height:1.6; }
+.value-item strong { color:#1a1a1a; font-weight:500; }
+
+#products { background:#faf9f7; }
+.prod-tabs { display:flex; gap:8px; margin-bottom:36px; flex-wrap:wrap; }
+.tab-btn { padding:9px 22px; border-radius:20px; border:1px solid #e0e0e0; background:#fff; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s; color:#555; }
+.tab-btn.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.tab-btn:hover:not(.active) { border-color:#B85C38; color:#B85C38; }
+.prod-panel { display:none; }
+.prod-panel.active { display:block; }
+.managed-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.managed-title { font-size:15px; font-weight:500; color:#555; }
+.add-btn { display:flex; align-items:center; gap:8px; background:#B85C38; color:#fff; border:none; padding:9px 18px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; transition:background 0.2s; }
+.add-btn:hover { background:#9a4a2a; }
+
+.products-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.product-card { background:#fff; border-radius:12px; overflow:hidden; border:0.5px solid #e8e8e8; transition:transform 0.2s, box-shadow 0.2s; }
+.product-card:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(0,0,0,0.07); }
+.product-img { height:180px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#f5f0eb; }
+.product-img img { width:100%; height:100%; object-fit:cover; }
+.product-img .emoji-fallback { font-size:48px; }
+.product-info { padding:18px; }
+.product-name { font-weight:500; font-size:15px; margin-bottom:5px; }
+.product-desc { font-size:13px; color:#888; line-height:1.6; margin-bottom:12px; }
+.product-footer { display:flex; align-items:center; justify-content:space-between; }
+.product-price { font-weight:500; font-size:15px; color:#B85C38; }
+.del-btn { background:none; border:1px solid #eee; color:#bbb; padding:5px 10px; border-radius:6px; font-size:12px; cursor:pointer; transition:all 0.2s; }
+.del-btn:hover { border-color:#e55; color:#e55; }
+.empty-state { text-align:center; padding:64px 0; color:#bbb; grid-column:1/-1; }
+.empty-state p { font-size:32px; margin-bottom:12px; }
+
+/* MODALS */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:none; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; border-radius:16px; padding:32px; width:500px; max-width:94vw; max-height:90vh; overflow-y:auto; }
+.modal h3 { font-size:20px; font-weight:500; margin-bottom:24px; }
+.modal-form { display:flex; flex-direction:column; gap:14px; }
+.modal-form label { font-size:13px; color:#666; font-weight:500; display:block; margin-bottom:5px; }
+.modal-form input, .modal-form textarea { width:100%; border:1px solid #e5e5e5; border-radius:8px; padding:10px 14px; font-size:14px; font-family:inherit; outline:none; background:#faf9f7; transition:border 0.2s; }
+.modal-form input:focus, .modal-form textarea:focus { border-color:#B85C38; background:#fff; }
+.modal-form textarea { resize:vertical; min-height:80px; }
+.photo-upload-area { border:2px dashed #e0e0e0; border-radius:10px; padding:28px; text-align:center; cursor:pointer; transition:border 0.2s; background:#faf9f7; }
+.photo-upload-area:hover { border-color:#B85C38; }
+.photo-upload-area input { display:none; }
+.photo-preview { width:100%; height:160px; object-fit:cover; border-radius:8px; margin-top:10px; display:none; }
+.modal-btns { display:flex; gap:12px; justify-content:flex-end; margin-top:16px; }
+.modal-cancel { background:none; border:1px solid #e0e0e0; padding:10px 20px; border-radius:8px; font-size:14px; cursor:pointer; }
+.modal-submit { background:#1a1a1a; color:#fff; border:none; padding:10px 24px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; transition:background 0.2s; }
+.modal-submit:hover { background:#B85C38; }
+
+/* LOGIN MODAL */
+.login-modal { background:#fff; border-radius:16px; padding:36px; width:380px; max-width:94vw; text-align:center; }
+.login-modal h3 { font-size:20px; font-weight:500; margin-bottom:8px; }
+.login-modal p { font-size:14px; color:#888; margin-bottom:24px; }
+.login-modal input { width:100%; border:1px solid #e5e5e5; border-radius:8px; padding:12px 14px; font-size:15px; font-family:inherit; outline:none; background:#faf9f7; text-align:center; letter-spacing:2px; margin-bottom:14px; transition:border 0.2s; }
+.login-modal input:focus { border-color:#B85C38; background:#fff; }
+.login-error { font-size:13px; color:#e55; margin-bottom:10px; min-height:18px; }
+.login-btn { width:100%; background:#1a1a1a; color:#fff; border:none; padding:13px; border-radius:8px; font-size:15px; font-weight:500; cursor:pointer; transition:background 0.2s; }
+.login-btn:hover { background:#B85C38; }
+
+/* CONTACT */
+.contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
+.contact-item { display:flex; gap:16px; margin-bottom:24px; align-items:flex-start; }
+.contact-icon { width:44px; height:44px; border-radius:10px; background:#fde8de; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.contact-icon svg { width:18px; height:18px; fill:#B85C38; }
+.contact-label { font-size:12px; color:#aaa; margin-bottom:3px; }
+.contact-value { font-size:15px; font-weight:500; }
+.contact-form { display:flex; flex-direction:column; gap:14px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group label { font-size:13px; color:#666; font-weight:500; }
+.form-group input, .form-group textarea, .form-group select { border:1px solid #e5e5e5; border-radius:8px; padding:11px 14px; font-size:14px; font-family:inherit; outline:none; background:#faf9f7; transition:border 0.2s; }
+.form-group input:focus, .form-group textarea:focus { border-color:#B85C38; background:#fff; }
+.form-group textarea { resize:vertical; min-height:120px; }
+.form-submit { background:#1a1a1a; color:#fff; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:500; cursor:pointer; transition:background 0.2s; }
+.form-submit:hover { background:#B85C38; }
+
+footer { background:#1a1a1a; color:#fff; padding:40px 10%; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.footer-logo { font-size:18px; font-weight:500; }
+.footer-logo span { color:#B85C38; }
+.footer-links { display:flex; gap:24px; font-size:13px; color:#888; }
+.footer-links a:hover { color:#fff; }
+.footer-copy { font-size:13px; color:#666; }
+
+#toast { position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(80px); background:#1a1a1a; color:#fff; padding:12px 24px; border-radius:8px; font-size:14px; opacity:0; transition:all 0.3s; z-index:999; pointer-events:none; }
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+.admin-badge { display:inline-flex; align-items:center; gap:6px; background:#fde8de; color:#B85C38; font-size:12px; font-weight:500; padding:4px 12px; border-radius:20px; cursor:pointer; border:none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">ST<span>_</span>Vente</div>
+  <div class="nav-links">
+    <a href="#about">À propos</a>
+    <a href="#products">Produits</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <button class="nav-cta" onclick="goContact()">Nous contacter</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Boutique en ligne &amp; physique</div>
+    <h1>La qualité,<br>au juste <em>prix</em></h1>
+    <p>ST_Vente vous propose une sélection soignée de produits pour répondre à tous vos besoins. Découvrez notre catalogue et bénéficiez d'un service personnalisé.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="goSection('#products')">Voir nos produits</button>
+      <button class="btn-outline" onclick="goContact()">Prendre contact</button>
+    </div>
+  </div>
+</div>
+
+<!-- À PROPOS -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-visual">
+      <div style="text-align:center;">
+        <div class="about-icon">
+          <svg viewBox="0 0 24 24" width="32" height="32"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm0 10c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+        </div>
+        <p style="font-size:20px;font-weight:500;color:#555;margin-top:8px;">ST_Vente</p>
+      </div>
+    </div>
+    <div>
+      <div class="section-tag">Notre histoire</div>
+      <div class="section-title">Une boutique pensée pour vous</div>
+      <p style="font-size:16px;color:#666;line-height:1.8;margin-bottom:20px;">Fondée avec la passion du commerce de qualité, ST_Vente s'est imposée comme une référence locale. Notre équipe sélectionne rigoureusement chaque produit pour garantir votre entière satisfaction.</p>
+      <div class="values">
+        <div class="value-item"><div class="value-dot"></div><p><strong>Qualité garantie</strong> — Chaque produit est soigneusement sélectionné avant d'être proposé à la vente.</p></div>
+        <div class="value-item"><div class="value-dot"></div><p><strong>Service client</strong> — Une équipe à votre écoute, disponible pour répondre à toutes vos questions.</p></div>
+        <div class="value-item"><div class="value-dot"></div><p><strong>Prix honnêtes</strong> — Des tarifs transparents, sans mauvaise surprise.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUITS -->
+<section id="products">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:8px;">
+    <div>
+      <div class="section-tag">Catalogue</div>
+      <div class="section-title">Nos produits</div>
+      <p class="section-sub">Parcourez notre sélection ou explorez les onglets ci-dessous.</p>
+    </div>
+    <div style="padding-top:8px;">
+      <button id="admin-toggle" class="admin-badge" onclick="handleAdminClick()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#B85C38"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        <span id="admin-label">Espace admin</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="prod-tabs">
+    <button class="tab-btn active" onclick="switchTab('catalogue',this)">Tous les produits</button>
+    <button class="tab-btn" onclick="switchTab('nouveautes',this)">Nouveautés</button>
+    <button class="tab-btn" onclick="switchTab('exclusivites',this)">Exclusivités</button>
+    <button class="tab-btn" onclick="switchTab('promotions',this)">Promotions</button>
+  </div>
+
+  <div id="tab-catalogue" class="prod-panel active">
+    <div class="managed-header">
+      <span class="managed-title">Tous vos produits</span>
+      <button class="add-btn admin-only" style="display:none" onclick="openModal('catalogue')">+ Ajouter un produit</button>
+    </div>
+    <div class="products-grid" id="grid-catalogue"><div class="empty-state"><p>🛍️</p><span>Aucun produit pour l'instant</span></div></div>
+  </div>
+  <div id="tab-nouveautes" class="prod-panel">
+    <div class="managed-header">
+      <span class="managed-title">Nouveautés</span>
+      <button class="add-btn admin-only" style="display:none" onclick="openModal('nouveautes')">+ Ajouter une nouveauté</button>
+    </div>
+    <div class="products-grid" id="grid-nouveautes"><div class="empty-state"><p>✨</p><span>Aucune nouveauté pour l'instant</span></div></div>
+  </div>
+  <div id="tab-exclusivites" class="prod-panel">
+    <div class="managed-header">
+      <span class="managed-title">Exclusivités</span>
+      <button class="add-btn admin-only" style="display:none" onclick="openModal('exclusivites')">+ Ajouter une exclusivité</button>
+    </div>
+    <div class="products-grid" id="grid-exclusivites"><div class="empty-state"><p>💎</p><span>Aucune exclusivité pour l'instant</span></div></div>
+  </div>
+  <div id="tab-promotions" class="prod-panel">
+    <div class="managed-header">
+      <span class="managed-title">Promotions</span>
+      <button class="add-btn admin-only" style="display:none" onclick="openModal('promotions')">+ Ajouter une promotion</button>
+    </div>
+    <div class="products-grid" id="grid-promotions"><div class="empty-state"><p>🔖</p><span>Aucune promotion pour l'instant</span></div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" style="background:#faf9f7;">
+  <div class="section-tag">Contact</div>
+  <div class="section-title">Parlons de votre projet</div>
+  <p class="section-sub">Vous avez une question ou souhaitez passer commande ? Nous sommes là pour vous.</p>
+  <div class="contact-grid">
+    <div>
+      <div class="contact-item">
+        <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+        <div><div class="contact-label">Adresse</div><div class="contact-value">Votre adresse, Castres</div></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
+        <div><div class="contact-label">Téléphone</div><div class="contact-value">Votre numéro</div></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+        <div><div class="contact-label">Email</div><div class="contact-value">yoanssss425@gmail.com</div></div>
+      </div>
+      <div class="contact-item">
+        <div class="contact-icon"><svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg></div>
+        <div><div class="contact-label">Horaires</div><div class="contact-value">À renseigner</div></div>
+      </div>
+    </div>
+    <div class="contact-form">
+      <div class="form-row">
+        <div class="form-group"><label>Prénom</label><input id="c-prenom" type="text" placeholder="Marie"></div>
+        <div class="form-group"><label>Nom</label><input id="c-nom" type="text" placeholder="Dupont"></div>
+      </div>
+      <div class="form-group"><label>Email</label><input id="c-email" type="email" placeholder="marie@email.fr"></div>
+      <div class="form-group"><label>Sujet</label>
+        <select id="c-sujet"><option>Renseignement produit</option><option>Commande</option><option>SAV</option><option>Autre</option></select>
+      </div>
+      <div class="form-group"><label>Message</label><textarea id="c-message" placeholder="Votre message..."></textarea></div>
+      <button class="form-submit" onclick="sendMail()">Envoyer le message</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">ST<span>_</span>Vente</div>
+  <div class="footer-links">
+    <a href="#about">À propos</a>
+    <a href="#products">Produits</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 ST_Vente</div>
+</footer>
+
+<!-- MODAL LOGIN ADMIN -->
+<div class="modal-overlay" id="login-modal">
+  <div class="login-modal">
+    <h3>Espace administrateur</h3>
+    <p>Entrez le mot de passe pour accéder à la gestion des produits.</p>
+    <input id="login-pw" type="password" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkLogin()">
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" onclick="checkLogin()">Accéder</button>
+  </div>
+</div>
+
+<!-- MODAL AJOUT PRODUIT -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h3 id="modal-title">Ajouter un produit</h3>
+    <div class="modal-form">
+      <div>
+        <label>Nom du produit *</label>
+        <input id="p-name" type="text" placeholder="Ex : Chaussures en cuir">
+      </div>
+      <div>
+        <label>Photo du produit</label>
+        <div class="photo-upload-area" onclick="document.getElementById('p-photo').click()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#ccc" style="display:block;margin:0 auto 8px"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+          <span style="font-size:13px;color:#aaa;">Cliquez pour choisir une image</span>
+          <input id="p-photo" type="file" accept="image/*" onchange="previewPhoto(this)">
+          <img id="p-preview" class="photo-preview" alt="aperçu">
+        </div>
+      </div>
+      <div>
+        <label>Description courte</label>
+        <textarea id="p-desc" placeholder="Quelques mots sur ce produit..."></textarea>
+      </div>
+      <div>
+        <label>Prix</label>
+        <input id="p-price" type="text" placeholder="Ex : 29 € ou Sur devis">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Annuler</button>
+      <button class="modal-submit" onclick="addProduct()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const ADMIN_PW = 'ServiceAntiFraude';
+let isAdmin = false;
+let currentTab = 'catalogue';
+const products = { catalogue:[], nouveautes:[], exclusivites:[], promotions:[] };
+const emptyIcons = { catalogue:'🛍️', nouveautes:'✨', exclusivites:'💎', promotions:'🔖' };
+const emptyLabels = { catalogue:'Aucun produit pour l\'instant', nouveautes:'Aucune nouveauté pour l\'instant', exclusivites:'Aucune exclusivité pour l\'instant', promotions:'Aucune promotion pour l\'instant' };
+
+function handleAdminClick() {
+  if (isAdmin) { logoutAdmin(); return; }
+  document.getElementById('login-pw').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('login-modal').classList.add('open');
+  setTimeout(() => document.getElementById('login-pw').focus(), 100);
+}
+
+function checkLogin() {
+  const pw = document.getElementById('login-pw').value;
+  if (pw === ADMIN_PW) {
+    isAdmin = true;
+    document.getElementById('login-modal').classList.remove('open');
+    document.getElementById('admin-label').textContent = 'Admin connecté — Déconnexion';
+    document.getElementById('admin-toggle').style.background = '#e8f4e8';
+    document.getElementById('admin-toggle').style.color = '#3a7a3a';
+    document.getElementById('admin-toggle').querySelector('svg').setAttribute('fill','#3a7a3a');
+    document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'flex');
+    toast('Connecté en tant qu\'administrateur');
+  } else {
+    document.getElementById('login-error').textContent = 'Mot de passe incorrect.';
+    document.getElementById('login-pw').value = '';
+    document.getElementById('login-pw').focus();
+  }
+}
+
+function logoutAdmin() {
+  isAdmin = false;
+  document.getElementById('admin-label').textContent = 'Espace admin';
+  document.getElementById('admin-toggle').style.background = '#fde8de';
+  document.getElementById('admin-toggle').style.color = '#B85C38';
+  document.getElementById('admin-toggle').querySelector('svg').setAttribute('fill','#B85C38');
+  document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none');
+  toast('Déconnecté');
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.prod-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+function openModal(tab) {
+  if (!isAdmin) return;
+  currentTab = tab;
+  const labels = { catalogue:'Ajouter un produit', nouveautes:'Ajouter une nouveauté', exclusivites:'Ajouter une exclusivité', promotions:'Ajouter une promotion' };
+  document.getElementById('modal-title').textContent = labels[tab];
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-desc').value = '';
+  document.getElementById('p-price').value = '';
+  document.getElementById('p-photo').value = '';
+  document.getElementById('p-preview').style.display = 'none';
+  document.getElementById('p-preview').src = '';
+  document.getElementById('product-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('product-modal').classList.remove('open');
+  document.getElementById('login-modal').classList.remove('open');
+}
+
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('p-preview');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function addProduct() {
+  const name = document.getElementById('p-name').value.trim();
+  if (!name) { toast('Veuillez saisir un nom de produit.'); return; }
+  const desc = document.getElementById('p-desc').value.trim();
+  const price = document.getElementById('p-price').value.trim();
+  const imgSrc = document.getElementById('p-preview').src || '';
+  const prod = { name, desc, price, imgSrc, id: Date.now() };
+  products[currentTab].push(prod);
+  renderGrid(currentTab);
+  closeModal();
+  toast('Produit ajouté avec succès !');
+}
+
+function deleteProduct(tab, id) {
+  if (!isAdmin) return;
+  products[tab] = products[tab].filter(p => p.id !== id);
+  renderGrid(tab);
+  toast('Produit supprimé.');
+}
+
+function renderGrid(tab) {
+  const grid = document.getElementById('grid-'+tab);
+  if (!products[tab].length) {
+    grid.innerHTML = `<div class="empty-state"><p>${emptyIcons[tab]}</p><span>${emptyLabels[tab]}</span></div>`;
+    return;
+  }
+  grid.innerHTML = products[tab].map(p => `
+    <div class="product-card">
+      <div class="product-img">
+        ${p.imgSrc ? `<img src="${p.imgSrc}" alt="${p.name}">` : `<span class="emoji-fallback">📦</span>`}
+      </div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        ${p.desc ? `<div class="product-desc">${p.desc}</div>` : ''}
+        <div class="product-footer">
+          <span class="product-price">${p.price || ''}</span>
+          ${isAdmin ? `<button class="del-btn" onclick="deleteProduct('${tab}',${p.id})">Supprimer</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function sendMail() {
+  const prenom = document.getElementById('c-prenom').value.trim();
+  const nom = document.getElementById('c-nom').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const sujet = document.getElementById('c-sujet').value;
+  const message = document.getElementById('c-message').value.trim();
+  if (!message) { toast('Veuillez écrire un message.'); return; }
+  const subject = encodeURIComponent('[ST_Vente] ' + sujet + (prenom ? ' — ' + prenom + ' ' + nom : ''));
+  const body = encodeURIComponent(
+    'Prénom : ' + prenom + '\nNom : ' + nom + '\nEmail : ' + email +
+    '\nSujet : ' + sujet + '\n\nMessage :\n' + message
+  );
+  window.location.href = 'mailto:yoanssss425@gmail.com?subject=' + subject + '&body=' + body;
+  toast('Ouverture de votre messagerie...');
+}
+
+function goSection(sel) { document.querySelector(sel)?.scrollIntoView({ behavior:'smooth' }); }
+function goContact() { goSection('#contact'); }
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => { e.preventDefault(); goSection(a.getAttribute('href')); });
+});
+
+[document.getElementById('login-modal'), document.getElementById('product-modal')].forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+});
+</script>
+</body>
+</html>
